@@ -41,8 +41,9 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 		}()
 
 		exportReq := &cxpb.ExportAgentRequest{
-			Name:        baseAgent(cfg),
-			Environment: baseEnvironment(cfg),
+			Name: baseAgent(cfg),
+			// Environment doesn't have an agent schema
+			// Environment: baseEnvironment(cfg),
 		}
 		exportOp, err := ac.ExportAgent(ctx, exportReq)
 		if err != nil {
@@ -53,6 +54,8 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 		if err != nil {
 			return failure.Wrap(fmt.Errorf("failed to wait an exportOp, error: %v", err))
 		}
+
+		logger.Logger.Info("base agent exported")
 
 		content := exportedAgent.GetAgentContent()
 
@@ -69,6 +72,8 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 		if err != nil {
 			return failure.Wrap(fmt.Errorf("failed to wait an exportOp, error: %v", err))
 		}
+
+		logger.Logger.Info(fmt.Sprintf("agent restored in %s", cfg.TargetProjectID))
 	}
 
 	vc, err := cx.NewVersionsClient(ctx, option.WithEndpoint(fmt.Sprintf("%s:443", asiaNorthEast1Endpoint)))
@@ -162,5 +167,5 @@ func baseAgent(cfg Config) string {
 }
 
 func baseEnvironment(cfg Config) string {
-	return fmt.Sprintf("%s/environments/%s", baseAgent(cfg), cfg.TargetEnvID)
+	return fmt.Sprintf("%s/environments/%s", baseAgent(cfg), cfg.BaseEnvID)
 }
