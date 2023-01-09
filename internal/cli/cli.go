@@ -11,7 +11,6 @@ import (
 
 func Run(argv []string) error {
 	var logLevel string
-	logger.Logger = slog.New(slog.NewJSONHandler(os.Stdout))
 
 	app := &cli.App{
 		Name:  "dfcx",
@@ -31,10 +30,27 @@ func Run(argv []string) error {
 		},
 	}
 
+	logger.Logger = slog.New(slog.HandlerOptions{Level: level(logLevel)}.NewJSONHandler(os.Stdout))
+
 	if err := app.Run(argv); err != nil {
 		logger.Logger.Error("exit with error", err)
 		return err
 	}
 
 	return nil
+}
+
+func level(logLevel string) slog.Level {
+	switch logLevel {
+	case "info":
+		return slog.LevelInfo
+	case "debug":
+		return slog.LevelDebug
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }

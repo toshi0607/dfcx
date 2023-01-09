@@ -19,7 +19,7 @@ func Agent() *cli.Command {
 				Name:        "location",
 				EnvVars:     []string{"DF_LOCATION"},
 				Usage:       "agent location",
-				DefaultText: "asia-northeast1",
+				Value:       "asia-northeast1",
 				Destination: &config.Location,
 				Required:    true,
 			},

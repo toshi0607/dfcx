@@ -28,6 +28,7 @@ const (
 )
 
 func Deploy(ctx context.Context, cfg Config, version string) error {
+	logger.Logger.Info(fmt.Sprintf("deploy version %s to %s started", version, cfg.TargetProjectID))
 	if cfg.BaseAgentID != cfg.TargetAgentID {
 		ac, err := cx.NewAgentsClient(ctx, option.WithEndpoint(fmt.Sprintf("%s:443", asiaNorthEast1Endpoint)))
 		if err != nil {
@@ -83,7 +84,7 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 	vReq := &cxpb.CreateVersionRequest{
 		Parent: targetFlow(cfg),
 		Version: &cxpb.Version{
-			Name: version,
+			DisplayName: version,
 		},
 	}
 	vOp, err := vc.CreateVersion(ctx, vReq)
@@ -95,6 +96,7 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 	if err != nil {
 		return failure.Wrap(fmt.Errorf("failed to wait a create op, error: %v", err))
 	}
+	logger.Logger.Info("version created", "version", vReq.Version.DisplayName)
 
 	ec, err := cx.NewEnvironmentsClient(ctx, option.WithEndpoint(fmt.Sprintf("%s:443", asiaNorthEast1Endpoint)))
 	if err != nil {
@@ -117,7 +119,7 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 			Name: targetEnvironment(cfg),
 			// Only default flow is assumed.
 			// All reachable flows must be set.
-			VersionConfigs: []*cxpb.Environment_VersionConfig{{Version: vOp.Name()}},
+			VersionConfigs: []*cxpb.Environment_VersionConfig{{Version: vReq.Version.GetName()}},
 		},
 		UpdateMask: mask,
 	}
@@ -131,6 +133,9 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 	if err != nil {
 		return failure.Wrap(fmt.Errorf("failed to wait a update op, error: %v", err))
 	}
+	logger.Logger.Info("environment created", "version", eReq.Environment.GetVersionConfigs()[0])
+
+	logger.Logger.Info("deploy finished")
 
 	return nil
 }
@@ -140,11 +145,11 @@ func targetAgent(cfg Config) string {
 }
 
 func targetEnvironment(cfg Config) string {
-	return fmt.Sprintf("%s/locations/%s/agents/%s", targetAgent(cfg), cfg.TargetEnvID)
+	return fmt.Sprintf("%s/flows/%s", targetAgent(cfg), cfg.TargetEnvID)
 }
 
 func targetFlow(cfg Config) string {
-	return fmt.Sprintf("%s/locations/%s/agents/%s", targetAgent(cfg), defaultFlowID)
+	return fmt.Sprintf("%s/flows/%s", targetAgent(cfg), defaultFlowID)
 }
 
 func baseAgent(cfg Config) string {
@@ -152,5 +157,5 @@ func baseAgent(cfg Config) string {
 }
 
 func baseEnvironment(cfg Config) string {
-	return fmt.Sprintf("%s/locations/%s/agents/%s", baseAgent(cfg), cfg.TargetEnvID)
+	return fmt.Sprintf("%s/%s", baseAgent(cfg), cfg.TargetEnvID)
 }
