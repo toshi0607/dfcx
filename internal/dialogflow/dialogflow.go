@@ -9,6 +9,7 @@ import (
 	"github.com/morikuni/failure"
 	"github.com/toshi0607/dfcx/internal/logger"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 type Config struct {
@@ -95,7 +96,41 @@ func Deploy(ctx context.Context, cfg Config, version string) error {
 		return failure.Wrap(fmt.Errorf("failed to wait a create op, error: %v", err))
 	}
 
-	// update env for target
+	ec, err := cx.NewEnvironmentsClient(ctx, option.WithEndpoint(fmt.Sprintf("%s:443", asiaNorthEast1Endpoint)))
+	if err != nil {
+		return failure.Wrap(err)
+	}
+	defer func() {
+		if err := vc.Close(); err != nil {
+			logger.Logger.Error("failed to close environments client", err)
+		}
+	}()
+
+	var messageType *cxpb.UpdateEnvironmentRequest
+	mask, err := fieldmaskpb.New(messageType, "version_configs")
+	if err != nil {
+		return failure.Wrap(fmt.Errorf("failed to create mask, error: %v", err))
+	}
+
+	eReq := &cxpb.UpdateEnvironmentRequest{
+		Environment: &cxpb.Environment{
+			Name: targetEnvironment(cfg),
+			// Only default flow is assumed.
+			// All reachable flows must be set.
+			VersionConfigs: []*cxpb.Environment_VersionConfig{{Version: vOp.Name()}},
+		},
+		UpdateMask: mask,
+	}
+
+	uOp, err := ec.UpdateEnvironment(ctx, eReq)
+	if err != nil {
+		return failure.Wrap(fmt.Errorf("failed to update the environment, error: %v", err))
+	}
+
+	_, err = uOp.Wait(ctx)
+	if err != nil {
+		return failure.Wrap(fmt.Errorf("failed to wait a update op, error: %v", err))
+	}
 
 	return nil
 }

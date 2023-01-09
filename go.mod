@@ -8,6 +8,7 @@ require (
 	github.com/urfave/cli/v2 v2.23.7
 	golang.org/x/exp v0.0.0-20230105202349-8879d0199aa3
 	google.golang.org/api v0.103.0
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -31,5 +32,4 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c // indirect
 	google.golang.org/grpc v1.50.1 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 )
