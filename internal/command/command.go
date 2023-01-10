@@ -54,7 +54,7 @@ func Agent() *cli.Command {
 func deploy() *cli.Command {
 	return &cli.Command{
 		Name:        "deploy",
-		Description: "Operate database",
+		Description: "publish version and update environment using base schema",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "version",
@@ -75,7 +75,7 @@ func deploy() *cli.Command {
 func base() *cli.Command {
 	return &cli.Command{
 		Name:        "base",
-		Description: "deploy base agent",
+		Description: "publish base version and update environment",
 		Flags:       nil,
 		Action: func(context *cli.Context) error {
 			config.TargetEnvID = config.BaseEnvID
