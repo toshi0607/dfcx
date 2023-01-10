@@ -89,7 +89,7 @@ USAGE:
    dfcx agent deploy command [command options] [arguments...]
 
 DESCRIPTION:
-   Operate database
+   publish version and update environment using base schema
 
 COMMANDS:
    base     
