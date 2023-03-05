@@ -1,6 +1,6 @@
 module github.com/toshi0607/dfcx
 
-go 1.19
+go 1.20
 
 require (
 	cloud.google.com/go/dialogflow v1.21.0
